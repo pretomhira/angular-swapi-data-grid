@@ -1,10 +1,11 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Swapi } from './core/services/swapi';
+import { StarWarsGridPage } from './features/star-wars-grid/pages/star-wars-grid-page/star-wars-grid-page';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [StarWarsGridPage],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
