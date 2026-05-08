@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
   environmentName: 'development',
-  apiUrl: 'https://swapi.dev/api',
+  apiUrl: 'https://swapi.info/api',
   enableLogging: true,
 };
