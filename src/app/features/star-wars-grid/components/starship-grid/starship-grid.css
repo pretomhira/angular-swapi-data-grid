@@ -1,0 +1,9 @@
+.starship-grid-wrapper {
+  width: 100%;
+  min-height: 60vh;
+}
+
+.starship-grid {
+  width: 100%;
+  height: 60vh;
+}
