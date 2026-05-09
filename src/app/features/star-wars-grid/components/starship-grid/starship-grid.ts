@@ -1,6 +1,17 @@
-import { Component, Input } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, NgZone } from '@angular/core';
 import { AgGridAngular } from 'ag-grid-angular';
-import { ModuleRegistry, AllCommunityModule, ColDef } from 'ag-grid-community';
+import {
+  ModuleRegistry,
+  AllCommunityModule,
+  ColDef,
+  GridApi,
+  GridReadyEvent,
+  IDatasource,
+  IGetRowsParams,
+  RowModelType,
+} from 'ag-grid-community';
+import { Character } from '../../../../core/models/character.model';
+import { Swapi } from '../../../../core/services/swapi';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 @Component({
@@ -10,51 +21,56 @@ ModuleRegistry.registerModules([AllCommunityModule]);
   styleUrl: './starship-grid.css',
 })
 export class StarshipGrid {
-  @Input() rowData: any[] = [];
+  private swapiService = inject(Swapi);
+  private ngZone = inject(NgZone);
+  private cdr = inject(ChangeDetectorRef);
+  private gridApi!: GridApi<Character>;
+  hasReachedEnd = false;
+
+  rowModelType: RowModelType = 'infinite';
+  cacheBlockSize = 20;
+  cacheOverflowSize = 2;
+  maxConcurrentDatasourceRequests = 1;
+  infiniteInitialRowCount = 100;
+  maxBlocksInCache = 10;
 
   columnDefs: ColDef[] = [
     {
+      headerName: 'ID',
+      field: 'id',
+      width: 100,
+    },
+    {
       headerName: 'Name',
       field: 'name',
-      flex: 1,
-      minWidth: 220,
-    },
-    {
-      headerName: 'Model',
-      field: 'model',
-      flex: 1,
-      minWidth: 220,
-    },
-    {
-      headerName: 'Manufacturer',
-      field: 'manufacturer',
       flex: 1.5,
       minWidth: 260,
     },
     {
-      headerName: 'Crew',
-      field: 'crew',
-      width: 120,
-    },
-    {
-      headerName: 'Passengers',
-      field: 'passengers',
+      headerName: 'Status',
+      field: 'status',
       width: 140,
     },
     {
-      headerName: 'Hyperdrive Rating',
-      field: 'hyperdrive_rating',
-      width: 180,
+      headerName: 'Species',
+      field: 'species',
+      width: 160,
     },
     {
-      headerName: 'MGLT',
-      field: 'MGLT',
-      width: 120,
+      headerName: 'Gender',
+      field: 'gender',
+      width: 140,
     },
     {
-      headerName: 'Starship Class',
-      field: 'starship_class',
-      minWidth: 200,
+      headerName: 'Origin',
+      valueGetter: (params) => params.data?.origin?.name ?? '',
+      minWidth: 220,
+      flex: 1,
+    },
+    {
+      headerName: 'Episodes',
+      valueGetter: (params) => params.data?.episode?.length ?? 0,
+      width: 140,
     },
   ];
 
@@ -63,4 +79,35 @@ export class StarshipGrid {
     filter: true,
     resizable: true,
   };
+
+  onGridReady(params: GridReadyEvent<Character>): void {
+    this.gridApi = params.api;
+    this.hasReachedEnd = false;
+
+    const dataSource: IDatasource = {
+      rowCount: undefined,
+      getRows: (rowParams: IGetRowsParams) => {
+        const pageNumber = Math.floor(rowParams.startRow / this.cacheBlockSize) + 1;
+
+        this.swapiService.getCharactersPage(pageNumber).subscribe({
+          next: (page) => {
+            if (!page.hasNextPage) {
+              this.ngZone.run(() => {
+                this.hasReachedEnd = true;
+                this.cdr.markForCheck();
+              });
+            }
+
+            const lastRow = page.hasNextPage ? -1 : page.total;
+            rowParams.successCallback(page.rows, lastRow);
+          },
+          error: () => {
+            rowParams.failCallback();
+          },
+        });
+      },
+    };
+
+    this.gridApi.setGridOption('datasource', dataSource);
+  }
 }
