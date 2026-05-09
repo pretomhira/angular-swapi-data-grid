@@ -3,9 +3,21 @@
     <ag-grid-angular
       class="starship-grid"
       theme="legacy"
-      [rowData]="rowData"
       [columnDefs]="columnDefs"
       [defaultColDef]="defaultColDef"
-    />
+      [rowModelType]="rowModelType"
+      [cacheBlockSize]="cacheBlockSize"
+      [cacheOverflowSize]="cacheOverflowSize"
+      [maxConcurrentDatasourceRequests]="maxConcurrentDatasourceRequests"
+      [infiniteInitialRowCount]="infiniteInitialRowCount"
+      [maxBlocksInCache]="maxBlocksInCache"
+      (gridReady)="onGridReady($event)"
+    ></ag-grid-angular>
   </div>
+
+  @if (hasReachedEnd) {
+    <p class="text-xl" role="status" aria-live="polite">
+      You have reached the end of the list. There are no more pages.
+    </p>
+  }
 </div>
