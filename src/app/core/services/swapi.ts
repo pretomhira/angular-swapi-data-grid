@@ -1,14 +1,23 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Starship } from '../models/starship.model';
+import { Character } from '../models/character.model';
 
-interface SwapiPaginatedResponse<T> {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: T[];
+interface CharactersApiResponse {
+  info: {
+    count: number;
+    pages: number;
+    next: string | null;
+    prev: string | null;
+  };
+  results: Character[];
+}
+
+export interface CharactersPage {
+  rows: Character[];
+  total: number;
+  hasNextPage: boolean;
 }
 
 @Injectable({
@@ -18,7 +27,15 @@ export class Swapi {
   private http = inject(HttpClient);
   private readonly API_URL = environment.apiUrl;
 
-  getStarships(pageNumber: number): Observable<SwapiPaginatedResponse<Starship> | Starship[]> {
-    return this.http.get<SwapiPaginatedResponse<Starship> | Starship[]>(`${this.API_URL}/starships/?page=${pageNumber}`);
+  getCharactersPage(pageNumber: number): Observable<CharactersPage> {
+    return this.http
+      .get<CharactersApiResponse>(`${this.API_URL}/character?page=${pageNumber}`)
+      .pipe(
+      map((response) => ({
+        rows: response.results ?? [],
+        total: response.info?.count ?? 0,
+        hasNextPage: response.info?.next !== null,
+      })),
+      );
   }
 }
