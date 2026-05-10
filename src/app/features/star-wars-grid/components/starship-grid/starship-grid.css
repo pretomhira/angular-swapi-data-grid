@@ -17,10 +17,19 @@
   border-top-right-radius: 0;
 }
 
+:host ::ng-deep .starship-grid .ag-cell,
+:host ::ng-deep .starship-grid .ag-cell-value,
 :host ::ng-deep .starship-grid .ag-header-cell-text {
   font-family: 'Inter', sans-serif;
-  color: #60646c;
+  font-style: normal;
+  letter-spacing: 0;
+}
+
+:host ::ng-deep .starship-grid .ag-header-cell-text {
   font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: #60646c;
 }
 
 :host ::ng-deep .starship-grid .ag-header-cell {
@@ -55,7 +64,9 @@
 
 :host ::ng-deep .starship-grid .ag-cell,
 :host ::ng-deep .starship-grid .ag-cell-value {
-  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
   color: #1c2024;
 }
 
