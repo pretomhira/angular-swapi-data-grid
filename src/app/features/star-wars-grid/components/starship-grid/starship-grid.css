@@ -44,6 +44,3 @@
 :host ::ng-deep .starship-grid .ag-row .ag-cell:first-child {
   border-left: 1px solid #e0e1e6;
 }
-
-:host ::ng-deep .starship-grid .ag-center-cols-container .ag-row:first-child .ag-cell {
-}
