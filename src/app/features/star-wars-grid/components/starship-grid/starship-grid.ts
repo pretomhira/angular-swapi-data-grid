@@ -9,6 +9,7 @@ import {
   IDatasource,
   IGetRowsParams,
   RowModelType,
+  CellValueChangedEvent,
 } from 'ag-grid-community';
 import { Character } from '../../../../core/models/character.model';
 import { CharacterFilters, Swapi } from '../../../../core/services/swapi';
@@ -28,6 +29,7 @@ export class StarshipGrid {
   private cdr = inject(ChangeDetectorRef);
   private gridApi!: GridApi<Character>;
   private searchChanged$ = new Subject<string>();
+  private editedRows = new Map<number, Partial<Character>>();
 
   hasReachedEnd = false;
   searchTerm = '';
@@ -55,6 +57,7 @@ export class StarshipGrid {
       field: 'name',
       flex: 1.5,
       minWidth: 260,
+      editable: true,
     },
     {
       headerName: 'Status',
@@ -117,6 +120,19 @@ export class StarshipGrid {
     this.resetGridDataSource();
   }
 
+  onCellValueChanged(event: CellValueChangedEvent): void {
+    const row = event.data;
+    if (row?.id || !event.colDef.field) {
+      return;
+    }
+    const existingEdit = this.editedRows.get(row.id) || {};
+
+    this.editedRows.set(row.id, {
+      ...existingEdit,
+      [event.colDef.field]: event.newValue,
+    });
+  }
+
   onGridReady(params: GridReadyEvent<Character>): void {
     this.gridApi = params.api;
     this.resetGridDataSource();
@@ -155,9 +171,14 @@ export class StarshipGrid {
               return;
             }
 
+            const rowsWithLocalEdits = page.rows.map((row) => ({
+              ...row,
+              ...(this.editedRows.get(row.id) ?? {}),
+            }));
+
             const lastRow = page.hasNextPage ? -1 : page.total;
 
-            rowParams.successCallback(page.rows, lastRow);
+            rowParams.successCallback(rowsWithLocalEdits, lastRow);
 
             this.gridApi.hideOverlay();
           },
