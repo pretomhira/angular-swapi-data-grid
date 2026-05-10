@@ -42,7 +42,7 @@ export class StarshipGrid {
 
   rowModelType: RowModelType = 'infinite';
   cacheBlockSize = 20;
-  cacheOverflowSize = 2;
+  cacheOverflowSize = 1;
   maxConcurrentDatasourceRequests = 1;
   infiniteInitialRowCount = 100;
   maxBlocksInCache = 10;
@@ -169,14 +169,29 @@ export class StarshipGrid {
 
         this.swapiService.getCharactersPage(pageNumber, this.searchTerm, filters).subscribe({
           next: (page) => {
+            const isFirstBlock = rowParams.startRow === 0;
+            const isEmptyPage = page.rows.length === 0;
+
+            if (isEmptyPage && !isFirstBlock) {
+              this.ngZone.run(() => {
+                this.noRowsFound = false;
+                this.hasReachedEnd = true;
+                this.cdr.markForCheck();
+              });
+
+              rowParams.successCallback([], rowParams.startRow);
+              this.gridApi.hideOverlay();
+              return;
+            }
+
             this.ngZone.run(() => {
               this.isInitialLoading = false;
-              this.noRowsFound = page.total === 0;
+              this.noRowsFound = isFirstBlock && page.total === 0;
               this.hasReachedEnd = page.total > 0 && !page.hasNextPage;
               this.cdr.markForCheck();
             });
 
-            if (page.total === 0) {
+            if (isFirstBlock && page.total === 0) {
               rowParams.successCallback([], 0);
               this.gridApi.showNoRowsOverlay();
               return;
@@ -187,7 +202,7 @@ export class StarshipGrid {
               ...(this.editedRows.get(row.id) ?? {}),
             }));
 
-            const lastRow = page.hasNextPage ? -1 : page.total;
+            const lastRow = page.hasNextPage ? undefined : rowParams.startRow + page.rows.length;
 
             rowParams.successCallback(rowsWithLocalEdits, lastRow);
 
