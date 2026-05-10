@@ -20,6 +20,12 @@ export interface CharactersPage {
   hasNextPage: boolean;
 }
 
+export interface CharacterFilters {
+  status: string;
+  species: string;
+  gender: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -27,10 +33,23 @@ export class Swapi {
   private http = inject(HttpClient);
   private readonly API_URL = environment.apiUrl;
 
-  getCharactersPage(pageNumber: number, searchTerm = ''): Observable<CharactersPage> {
+  getCharactersPage(
+    pageNumber: number,
+    searchTerm = '',
+    filters?: CharacterFilters,
+  ): Observable<CharactersPage> {
     let params = new HttpParams().set('page', pageNumber);
     if (searchTerm) {
       params = params.set('name', searchTerm);
+    }
+    if (filters?.status) {
+      params = params.set('status', filters.status);
+    }
+    if (filters?.species) {
+      params = params.set('species', filters.species);
+    }
+    if (filters?.gender) {
+      params = params.set('gender', filters.gender);
     }
 
     return this.http.get<CharactersApiResponse>(`${this.API_URL}/character`, { params }).pipe(
@@ -41,7 +60,7 @@ export class Swapi {
       })),
 
       catchError((error: HttpErrorResponse) => {
-        if (error.status === 404 && searchTerm.trim()) {
+        if (error.status === 404) {
           return of({
             rows: [],
             total: 0,
