@@ -31,6 +31,23 @@
   border-top: 1px solid #e0e1e6;
 }
 
+:host ::ng-deep .starship-grid .ag-header-cell-resize::after {
+  background-color: transparent;
+  opacity: 0;
+  width: 4px;
+  height: 16px;
+  border-radius: 8px;
+  transition:
+    opacity 0.15s ease,
+    background-color 0.15s ease;
+}
+
+:host ::ng-deep .starship-grid .ag-header-cell:hover .ag-header-cell-resize::after,
+:host ::ng-deep .starship-grid .ag-header-cell-resize:hover::after {
+  background-color: #405dff;
+  opacity: 1;
+}
+
 :host ::ng-deep .starship-grid .ag-cell,
 :host ::ng-deep .starship-grid .ag-cell-value {
   font-family: 'Inter', sans-serif;
