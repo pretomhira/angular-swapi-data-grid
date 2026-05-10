@@ -47,6 +47,8 @@ export class StarshipGrid {
   maxConcurrentDatasourceRequests = 1;
   infiniteInitialRowCount = 100;
   maxBlocksInCache = 10;
+  rowHeight = 36;
+  headerHeight = 32;
   isInitialLoading = true;
   apiErrorMessage = '';
 
@@ -241,7 +243,9 @@ export class StarshipGrid {
         };
 
         const allRows = await this.fetchAllRowsForFilters(filters);
-        this.globalSearchRows = allRows.filter((row) => this.matchesGlobalSearch(row, this.searchTerm));
+        this.globalSearchRows = allRows.filter((row) =>
+          this.matchesGlobalSearch(row, this.searchTerm),
+        );
       }
 
       const filteredRows = this.globalSearchRows;
@@ -279,7 +283,9 @@ export class StarshipGrid {
     let hasNextPage = true;
 
     while (hasNextPage) {
-      const page = await firstValueFrom(this.swapiService.getCharactersPage(pageNumber, '', filters));
+      const page = await firstValueFrom(
+        this.swapiService.getCharactersPage(pageNumber, '', filters),
+      );
       rows.push(...page.rows);
       hasNextPage = page.hasNextPage;
       pageNumber += 1;
