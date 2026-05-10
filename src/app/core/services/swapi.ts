@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -27,15 +27,18 @@ export class Swapi {
   private http = inject(HttpClient);
   private readonly API_URL = environment.apiUrl;
 
-  getCharactersPage(pageNumber: number): Observable<CharactersPage> {
-    return this.http
-      .get<CharactersApiResponse>(`${this.API_URL}/character?page=${pageNumber}`)
-      .pipe(
+  getCharactersPage(pageNumber: number, searchTerm = ''): Observable<CharactersPage> {
+    let params = new HttpParams().set('page', pageNumber);
+    if (searchTerm) {
+      params = params.set('name', searchTerm);
+    }
+
+    return this.http.get<CharactersApiResponse>(`${this.API_URL}/character`, { params }).pipe(
       map((response) => ({
         rows: response.results ?? [],
         total: response.info?.count ?? 0,
         hasNextPage: response.info?.next !== null,
       })),
-      );
+    );
   }
 }

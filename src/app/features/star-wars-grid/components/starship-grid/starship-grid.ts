@@ -12,11 +12,13 @@ import {
 } from 'ag-grid-community';
 import { Character } from '../../../../core/models/character.model';
 import { Swapi } from '../../../../core/services/swapi';
+import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import { FormsModule } from '@angular/forms';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 @Component({
   selector: 'app-starship-grid',
-  imports: [AgGridAngular],
+  imports: [AgGridAngular, FormsModule],
   templateUrl: './starship-grid.html',
   styleUrl: './starship-grid.css',
 })
@@ -25,7 +27,11 @@ export class StarshipGrid {
   private ngZone = inject(NgZone);
   private cdr = inject(ChangeDetectorRef);
   private gridApi!: GridApi<Character>;
+  private searchChanged$ = new Subject<string>();
+
   hasReachedEnd = false;
+  searchTerm = '';
+  noRowsFound = false;
 
   rowModelType: RowModelType = 'infinite';
   cacheBlockSize = 20;
@@ -69,7 +75,7 @@ export class StarshipGrid {
     },
     {
       headerName: 'Episodes',
-      valueGetter: (params) => params.data?.episode?.length ?? 0,
+      valueGetter: (params) => params.data?.episode?.length ?? '',
       width: 140,
     },
   ];
@@ -80,27 +86,60 @@ export class StarshipGrid {
     resizable: true,
   };
 
+  ngOnInit(): void {
+    this.searchChanged$.pipe(debounceTime(500), distinctUntilChanged()).subscribe((value) => {
+      this.searchTerm = value;
+      this.resetGridDataSource();
+    });
+  }
+
+  onSearchChange(value: string): void {
+    this.searchChanged$.next(value);
+  }
+
+  clearSearch(): void {
+    this.searchTerm = '';
+    this.searchChanged$.next('');
+  }
+
   onGridReady(params: GridReadyEvent<Character>): void {
     this.gridApi = params.api;
+    this.resetGridDataSource();
+  }
+
+  private resetGridDataSource(): void {
+    if (!this.gridApi) {
+      return;
+    }
+
     this.hasReachedEnd = false;
+    this.noRowsFound = false;
 
     const dataSource: IDatasource = {
       rowCount: undefined,
+
       getRows: (rowParams: IGetRowsParams) => {
         const pageNumber = Math.floor(rowParams.startRow / this.cacheBlockSize) + 1;
 
-        this.swapiService.getCharactersPage(pageNumber).subscribe({
+        this.swapiService.getCharactersPage(pageNumber, this.searchTerm).subscribe({
           next: (page) => {
-            if (!page.hasNextPage) {
-              this.ngZone.run(() => {
-                this.hasReachedEnd = true;
-                this.cdr.markForCheck();
-              });
-            }
+            this.ngZone.run(() => {
+              this.noRowsFound = page.total === 0;
+              this.hasReachedEnd = page.total > 0 && !page.hasNextPage;
+              this.cdr.markForCheck();
+            });
 
             const lastRow = page.hasNextPage ? -1 : page.total;
+
             rowParams.successCallback(page.rows, lastRow);
+
+            if (page.total === 0) {
+              this.gridApi.showNoRowsOverlay();
+            } else {
+              this.gridApi.hideOverlay();
+            }
           },
+
           error: () => {
             rowParams.failCallback();
           },
