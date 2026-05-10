@@ -12,6 +12,11 @@
   background-color: #ffffff;
 }
 
+:host ::ng-deep .starship-grid .ag-root-wrapper {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
 :host ::ng-deep .starship-grid .ag-header-cell-text {
   font-family: 'Inter', sans-serif;
   color: #60646c;
@@ -27,9 +32,9 @@
   border-left: 1px solid #e0e1e6;
 }
 
-:host ::ng-deep .starship-grid .ag-header-row:first-child .ag-header-cell {
+/* :host ::ng-deep .starship-grid .ag-header-row:first-child .ag-header-cell {
   border-top: 1px solid #e0e1e6;
-}
+} */
 
 :host ::ng-deep .starship-grid .ag-header-cell-resize::after {
   background-color: transparent;
