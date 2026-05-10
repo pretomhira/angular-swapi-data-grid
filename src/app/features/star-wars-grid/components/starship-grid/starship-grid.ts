@@ -11,7 +11,7 @@ import {
   RowModelType,
 } from 'ag-grid-community';
 import { Character } from '../../../../core/models/character.model';
-import { Swapi } from '../../../../core/services/swapi';
+import { CharacterFilters, Swapi } from '../../../../core/services/swapi';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 
@@ -32,6 +32,11 @@ export class StarshipGrid {
   hasReachedEnd = false;
   searchTerm = '';
   noRowsFound = false;
+  statusFilter = '';
+  speciesFilter = '';
+  genderFilter = '';
+  readonly statusOptions = ['', 'alive', 'dead', 'unknown'];
+  readonly genderOptions = ['', 'female', 'male', 'genderless', 'unknown'];
 
   rowModelType: RowModelType = 'infinite';
   cacheBlockSize = 20;
@@ -80,8 +85,8 @@ export class StarshipGrid {
   ];
 
   defaultColDef: ColDef = {
-    sortable: true,
-    filter: true,
+    sortable: false,
+    filter: false,
     resizable: true,
   };
 
@@ -99,6 +104,17 @@ export class StarshipGrid {
   clearSearch(): void {
     this.searchTerm = '';
     this.searchChanged$.next('');
+  }
+
+  onFilterChange(): void {
+    this.resetGridDataSource();
+  }
+
+  clearFilters(): void {
+    this.statusFilter = '';
+    this.speciesFilter = '';
+    this.genderFilter = '';
+    this.resetGridDataSource();
   }
 
   onGridReady(params: GridReadyEvent<Character>): void {
@@ -119,8 +135,13 @@ export class StarshipGrid {
 
       getRows: (rowParams: IGetRowsParams) => {
         const pageNumber = Math.floor(rowParams.startRow / this.cacheBlockSize) + 1;
+        const filters: CharacterFilters = {
+          status: this.statusFilter,
+          species: this.speciesFilter.trim(),
+          gender: this.genderFilter,
+        };
 
-        this.swapiService.getCharactersPage(pageNumber, this.searchTerm).subscribe({
+        this.swapiService.getCharactersPage(pageNumber, this.searchTerm, filters).subscribe({
           next: (page) => {
             this.ngZone.run(() => {
               this.noRowsFound = page.total === 0;
