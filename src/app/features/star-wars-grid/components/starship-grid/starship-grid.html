@@ -4,7 +4,7 @@
       type="text"
       [ngModel]="searchTerm"
       (ngModelChange)="onSearchChange($event)"
-      placeholder="Search characters by name..."
+      placeholder="Search by name, status, species, type, gender, origin..."
       class="w-full max-w-md rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm outline-none focus:border-gray-500"
     />
 
@@ -93,7 +93,7 @@
     </div>
   }
 
-  @if (!apiErrorMessage) {
+  @if (!apiErrorMessage || !isInitialLoading) {
     <div class="ag-theme-quartz starship-grid-wrapper">
       <ag-grid-angular
         class="starship-grid"
