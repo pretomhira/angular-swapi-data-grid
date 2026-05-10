@@ -47,6 +47,7 @@ export class StarshipGrid {
   infiniteInitialRowCount = 100;
   maxBlocksInCache = 10;
   isInitialLoading = true;
+  apiErrorMessage = '';
 
   columnDefs: ColDef[] = [
     {
@@ -135,6 +136,11 @@ export class StarshipGrid {
     });
   }
 
+  retryLoadData(): void {
+    this.apiErrorMessage = '';
+    this.resetGridDataSource();
+  }
+
   onGridReady(params: GridReadyEvent<Character>): void {
     this.gridApi = params.api;
     this.resetGridDataSource();
@@ -148,6 +154,7 @@ export class StarshipGrid {
     this.hasReachedEnd = false;
     this.noRowsFound = false;
     this.isInitialLoading = true;
+    this.apiErrorMessage = '';
 
     const dataSource: IDatasource = {
       rowCount: undefined,
@@ -188,6 +195,11 @@ export class StarshipGrid {
           },
 
           error: () => {
+            this.ngZone.run(() => {
+              this.isInitialLoading = false;
+              this.apiErrorMessage = 'Could not load characters. Please try again.';
+              this.cdr.markForCheck();
+            });
             rowParams.failCallback();
           },
         });

@@ -58,7 +58,21 @@
       </button>
     }
   </div>
+  @if (apiErrorMessage) {
+    <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+      <div class="flex items-center justify-between gap-4">
+        <p>{{ apiErrorMessage }}</p>
 
+        <button
+          type="button"
+          (click)="retryLoadData()"
+          class="rounded-lg border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-100"
+        >
+          Retry
+        </button>
+      </div>
+    </div>
+  }
   @if (noRowsFound) {
     <div
       class="rounded-xl border border-gray-200 bg-white px-4 py-6 text-center text-sm text-gray-500"
@@ -79,22 +93,24 @@
     </div>
   }
 
-  <div class="ag-theme-quartz starship-grid-wrapper">
-    <ag-grid-angular
-      class="starship-grid"
-      theme="legacy"
-      [columnDefs]="columnDefs"
-      [defaultColDef]="defaultColDef"
-      [rowModelType]="rowModelType"
-      [cacheBlockSize]="cacheBlockSize"
-      [cacheOverflowSize]="cacheOverflowSize"
-      [maxConcurrentDatasourceRequests]="maxConcurrentDatasourceRequests"
-      [infiniteInitialRowCount]="infiniteInitialRowCount"
-      [maxBlocksInCache]="maxBlocksInCache"
-      (gridReady)="onGridReady($event)"
-      (cellValueChanged)="onCellValueChanged($event)"
-    ></ag-grid-angular>
-  </div>
+  @if (!apiErrorMessage) {
+    <div class="ag-theme-quartz starship-grid-wrapper">
+      <ag-grid-angular
+        class="starship-grid"
+        theme="legacy"
+        [columnDefs]="columnDefs"
+        [defaultColDef]="defaultColDef"
+        [rowModelType]="rowModelType"
+        [cacheBlockSize]="cacheBlockSize"
+        [cacheOverflowSize]="cacheOverflowSize"
+        [maxConcurrentDatasourceRequests]="maxConcurrentDatasourceRequests"
+        [infiniteInitialRowCount]="infiniteInitialRowCount"
+        [maxBlocksInCache]="maxBlocksInCache"
+        (gridReady)="onGridReady($event)"
+        (cellValueChanged)="onCellValueChanged($event)"
+      ></ag-grid-angular>
+    </div>
+  }
 
   @if (hasReachedEnd && !noRowsFound) {
     <div
