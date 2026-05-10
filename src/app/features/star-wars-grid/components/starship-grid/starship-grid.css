@@ -5,5 +5,45 @@
 
 .starship-grid {
   width: 100%;
-  height: 60vh;
+  height: 80vh;
+}
+
+:host ::ng-deep .starship-grid .ag-header {
+  background-color: #ffffff;
+}
+
+:host ::ng-deep .starship-grid .ag-header-cell-text {
+  font-family: 'Inter', sans-serif;
+  color: #60646c;
+  font-size: 12px;
+}
+
+:host ::ng-deep .starship-grid .ag-header-cell {
+  border-right: 1px solid #e0e1e6;
+  border-bottom: 1px solid #e0e1e6;
+}
+
+:host ::ng-deep .starship-grid .ag-header-row .ag-header-cell:first-child {
+  border-left: 1px solid #e0e1e6;
+}
+
+:host ::ng-deep .starship-grid .ag-header-row:first-child .ag-header-cell {
+  border-top: 1px solid #e0e1e6;
+}
+
+:host ::ng-deep .starship-grid .ag-cell,
+:host ::ng-deep .starship-grid .ag-cell-value {
+  font-family: 'Inter', sans-serif;
+  color: #1c2024;
+}
+
+:host ::ng-deep .starship-grid .ag-cell {
+  border-right: 1px solid #e0e1e6;
+}
+
+:host ::ng-deep .starship-grid .ag-row .ag-cell:first-child {
+  border-left: 1px solid #e0e1e6;
+}
+
+:host ::ng-deep .starship-grid .ag-center-cols-container .ag-row:first-child .ag-cell {
 }
