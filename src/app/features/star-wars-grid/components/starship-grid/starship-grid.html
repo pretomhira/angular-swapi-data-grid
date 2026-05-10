@@ -1,11 +1,53 @@
-<div>
+<div class="space-y-4">
+  <div class="flex items-center gap-3">
+    <input
+      type="text"
+      [ngModel]="searchTerm"
+      (ngModelChange)="onSearchChange($event)"
+      placeholder="Search characters by name..."
+      class="w-full max-w-md rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm outline-none focus:border-gray-500"
+    />
+
+    @if (searchTerm) {
+      <button
+        type="button"
+        (click)="clearSearch()"
+        class="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+      >
+        Clear
+      </button>
+    }
+  </div>
+
+  @if (noRowsFound) {
+    <div
+      class="rounded-xl border border-gray-200 bg-white px-4 py-6 text-center text-sm text-gray-500"
+    >
+      No characters found for "{{ searchTerm }}".
+    </div>
+  }
+
   <div class="ag-theme-quartz starship-grid-wrapper">
     <ag-grid-angular
       class="starship-grid"
       theme="legacy"
-      [rowData]="rowData"
       [columnDefs]="columnDefs"
       [defaultColDef]="defaultColDef"
-    />
+      [rowModelType]="rowModelType"
+      [cacheBlockSize]="cacheBlockSize"
+      [cacheOverflowSize]="cacheOverflowSize"
+      [maxConcurrentDatasourceRequests]="maxConcurrentDatasourceRequests"
+      [infiniteInitialRowCount]="infiniteInitialRowCount"
+      [maxBlocksInCache]="maxBlocksInCache"
+      (gridReady)="onGridReady($event)"
+    ></ag-grid-angular>
   </div>
+
+  @if (hasReachedEnd && !noRowsFound) {
+    <div
+      class="rounded-xl border border-gray-200 bg-white px-4 py-3 text-center text-sm text-gray-500"
+    >
+      You have reached the end of the list. No more characters to load.
+    </div>
+  }
 </div>
