@@ -1,6 +1,6 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { map, Observable } from 'rxjs';
+import { catchError, map, Observable, throwError, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Character } from '../models/character.model';
 
@@ -39,6 +39,18 @@ export class Swapi {
         total: response.info?.count ?? 0,
         hasNextPage: response.info?.next !== null,
       })),
+
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 404 && searchTerm.trim()) {
+          return of({
+            rows: [],
+            total: 0,
+            hasNextPage: false,
+          });
+        }
+
+        return throwError(() => error);
+      }),
     );
   }
 }

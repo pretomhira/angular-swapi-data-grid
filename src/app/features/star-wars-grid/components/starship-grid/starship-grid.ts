@@ -39,7 +39,6 @@ export class StarshipGrid {
   maxConcurrentDatasourceRequests = 1;
   infiniteInitialRowCount = 100;
   maxBlocksInCache = 10;
-
   columnDefs: ColDef[] = [
     {
       headerName: 'ID',
@@ -129,15 +128,17 @@ export class StarshipGrid {
               this.cdr.markForCheck();
             });
 
+            if (page.total === 0) {
+              rowParams.successCallback([], 0);
+              this.gridApi.showNoRowsOverlay();
+              return;
+            }
+
             const lastRow = page.hasNextPage ? -1 : page.total;
 
             rowParams.successCallback(page.rows, lastRow);
 
-            if (page.total === 0) {
-              this.gridApi.showNoRowsOverlay();
-            } else {
-              this.gridApi.hideOverlay();
-            }
+            this.gridApi.hideOverlay();
           },
 
           error: () => {
