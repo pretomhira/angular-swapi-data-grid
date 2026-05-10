@@ -46,6 +46,8 @@ export class StarshipGrid {
   maxConcurrentDatasourceRequests = 1;
   infiniteInitialRowCount = 100;
   maxBlocksInCache = 10;
+  isInitialLoading = true;
+
   columnDefs: ColDef[] = [
     {
       headerName: 'ID',
@@ -145,6 +147,7 @@ export class StarshipGrid {
 
     this.hasReachedEnd = false;
     this.noRowsFound = false;
+    this.isInitialLoading = true;
 
     const dataSource: IDatasource = {
       rowCount: undefined,
@@ -160,6 +163,7 @@ export class StarshipGrid {
         this.swapiService.getCharactersPage(pageNumber, this.searchTerm, filters).subscribe({
           next: (page) => {
             this.ngZone.run(() => {
+              this.isInitialLoading = false;
               this.noRowsFound = page.total === 0;
               this.hasReachedEnd = page.total > 0 && !page.hasNextPage;
               this.cdr.markForCheck();
