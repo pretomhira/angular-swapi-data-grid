@@ -13,7 +13,7 @@ import {
 } from 'ag-grid-community';
 import { Character } from '../../../../core/models/character.model';
 import { CharacterFilters, Swapi } from '../../../../core/services/swapi';
-import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, firstValueFrom, Subject } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -30,6 +30,7 @@ export class StarshipGrid {
   private gridApi!: GridApi<Character>;
   private searchChanged$ = new Subject<string>();
   private editedRows = new Map<number, Partial<Character>>();
+  private globalSearchRows: Character[] | null = null;
 
   hasReachedEnd = false;
   searchTerm = '';
@@ -98,7 +99,7 @@ export class StarshipGrid {
 
   ngOnInit(): void {
     this.searchChanged$.pipe(debounceTime(500), distinctUntilChanged()).subscribe((value) => {
-      this.searchTerm = value;
+      this.searchTerm = value.trim();
       this.resetGridDataSource();
     });
   }
@@ -155,11 +156,17 @@ export class StarshipGrid {
     this.noRowsFound = false;
     this.isInitialLoading = true;
     this.apiErrorMessage = '';
+    this.globalSearchRows = null;
 
     const dataSource: IDatasource = {
       rowCount: undefined,
 
       getRows: (rowParams: IGetRowsParams) => {
+        if (this.searchTerm) {
+          this.getRowsForGlobalSearch(rowParams);
+          return;
+        }
+
         const pageNumber = Math.floor(rowParams.startRow / this.cacheBlockSize) + 1;
         const filters: CharacterFilters = {
           status: this.statusFilter,
@@ -167,7 +174,7 @@ export class StarshipGrid {
           gender: this.genderFilter,
         };
 
-        this.swapiService.getCharactersPage(pageNumber, this.searchTerm, filters).subscribe({
+        this.swapiService.getCharactersPage(pageNumber, '', filters).subscribe({
           next: (page) => {
             const isFirstBlock = rowParams.startRow === 0;
             const isEmptyPage = page.rows.length === 0;
@@ -222,5 +229,80 @@ export class StarshipGrid {
     };
 
     this.gridApi.setGridOption('datasource', dataSource);
+  }
+
+  private async getRowsForGlobalSearch(rowParams: IGetRowsParams): Promise<void> {
+    try {
+      if (!this.globalSearchRows) {
+        const filters: CharacterFilters = {
+          status: this.statusFilter,
+          species: this.speciesFilter.trim(),
+          gender: this.genderFilter,
+        };
+
+        const allRows = await this.fetchAllRowsForFilters(filters);
+        this.globalSearchRows = allRows.filter((row) => this.matchesGlobalSearch(row, this.searchTerm));
+      }
+
+      const filteredRows = this.globalSearchRows;
+      const pageRows = filteredRows.slice(rowParams.startRow, rowParams.endRow).map((row) => ({
+        ...row,
+        ...(this.editedRows.get(row.id) ?? {}),
+      }));
+
+      this.ngZone.run(() => {
+        this.isInitialLoading = false;
+        this.noRowsFound = filteredRows.length === 0;
+        this.hasReachedEnd = filteredRows.length > 0 && rowParams.endRow >= filteredRows.length;
+        this.cdr.markForCheck();
+      });
+
+      rowParams.successCallback(pageRows, filteredRows.length);
+      if (filteredRows.length === 0) {
+        this.gridApi.showNoRowsOverlay();
+      } else {
+        this.gridApi.hideOverlay();
+      }
+    } catch {
+      this.ngZone.run(() => {
+        this.isInitialLoading = false;
+        this.apiErrorMessage = 'Could not load characters. Please try again.';
+        this.cdr.markForCheck();
+      });
+      rowParams.failCallback();
+    }
+  }
+
+  private async fetchAllRowsForFilters(filters: CharacterFilters): Promise<Character[]> {
+    const rows: Character[] = [];
+    let pageNumber = 1;
+    let hasNextPage = true;
+
+    while (hasNextPage) {
+      const page = await firstValueFrom(this.swapiService.getCharactersPage(pageNumber, '', filters));
+      rows.push(...page.rows);
+      hasNextPage = page.hasNextPage;
+      pageNumber += 1;
+    }
+
+    return rows;
+  }
+
+  private matchesGlobalSearch(row: Character, term: string): boolean {
+    const needle = term.toLowerCase();
+    const haystack = [
+      row.name,
+      row.status,
+      row.species,
+      row.type,
+      row.gender,
+      row.origin?.name ?? '',
+      row.location?.name ?? '',
+      String(row.id),
+    ]
+      .join(' ')
+      .toLowerCase();
+
+    return haystack.includes(needle);
   }
 }
