@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
   environmentName: 'production',
-  apiUrl: 'https://swapi.info/api',
+  apiUrl: 'https://rickandmortyapi.com/api',
   enableLogging: false,
 };
