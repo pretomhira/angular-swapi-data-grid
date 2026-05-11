@@ -124,4 +124,27 @@ describe('Swapi', () => {
       results: [mockCharacter(2, 'Morty Smith')],
     });
   });
+  it('should return empty page when API returns 404', () => {
+    service.getCharactersPage(1, 'unknown-name').subscribe((page) => {
+      expect(page.rows).toEqual([]);
+      expect(page.total).toBe(0);
+      expect(page.hasNextPage).toBe(false);
+    });
+
+    const req = httpMock.expectOne((request) => {
+      return (
+        request.url === `${environment.apiUrl}/character` &&
+        request.params.get('page') === '1' &&
+        request.params.get('name') === 'unknown-name'
+      );
+    });
+
+    req.flush(
+      { error: 'There is nothing here' },
+      {
+        status: 404,
+        statusText: 'Not Found',
+      },
+    );
+  });
 });
