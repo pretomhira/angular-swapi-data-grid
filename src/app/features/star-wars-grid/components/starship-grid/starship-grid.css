@@ -1,11 +1,17 @@
 .starship-grid-wrapper {
   width: 100%;
-  min-height: 60vh;
+  min-height: 70vh;
 }
 
 .starship-grid {
   width: 100%;
-  height: 80vh;
+  height: 70vh;
+}
+
+@media (min-width: 1024px) {
+  .starship-grid {
+    height: 80vh;
+  }
 }
 
 :host ::ng-deep .starship-grid .ag-header {
