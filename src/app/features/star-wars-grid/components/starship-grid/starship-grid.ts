@@ -15,6 +15,7 @@ import { debounceTime, distinctUntilChanged, firstValueFrom, Subject } from 'rxj
 import { FormsModule } from '@angular/forms';
 import { defaultColDef, gridConfig, rowModelType } from './starship-grid.config';
 import { characterColumnDefs } from './starship-grid.columns';
+import { matchesGlobalSearch } from './starship-grid.helpers';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 @Component({
@@ -193,9 +194,7 @@ export class StarshipGrid {
         };
 
         const allRows = await this.fetchAllRowsForFilters(filters);
-        this.globalSearchRows = allRows.filter((row) =>
-          this.matchesGlobalSearch(row, this.searchTerm),
-        );
+        this.globalSearchRows = allRows.filter((row) => matchesGlobalSearch(row, this.searchTerm));
       }
 
       const filteredRows = this.globalSearchRows;
@@ -242,23 +241,5 @@ export class StarshipGrid {
     }
 
     return rows;
-  }
-
-  private matchesGlobalSearch(row: Character, term: string): boolean {
-    const needle = term.toLowerCase();
-    const haystack = [
-      row.name,
-      row.status,
-      row.species,
-      row.type,
-      row.gender,
-      row.origin?.name ?? '',
-      row.location?.name ?? '',
-      String(row.id),
-    ]
-      .join(' ')
-      .toLowerCase();
-
-    return haystack.includes(needle);
   }
 }
