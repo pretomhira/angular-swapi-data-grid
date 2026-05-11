@@ -8,13 +8,13 @@ import {
   GridReadyEvent,
   IDatasource,
   IGetRowsParams,
-  RowModelType,
   CellValueChangedEvent,
 } from 'ag-grid-community';
 import { Character } from '../../../../core/models/character.model';
 import { CharacterFilters, Swapi } from '../../../../core/services/swapi';
 import { debounceTime, distinctUntilChanged, firstValueFrom, Subject } from 'rxjs';
 import { FormsModule } from '@angular/forms';
+import { defaultColDef, gridConfig, rowModelType } from './starship-grid.config';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 @Component({
@@ -38,19 +38,14 @@ export class StarshipGrid {
   statusFilter = '';
   speciesFilter = '';
   genderFilter = '';
+  isInitialLoading = true;
+  apiErrorMessage = '';
+
   readonly statusOptions = ['', 'alive', 'dead', 'unknown'];
   readonly genderOptions = ['', 'female', 'male', 'genderless', 'unknown'];
 
-  rowModelType: RowModelType = 'infinite';
-  cacheBlockSize = 20;
-  cacheOverflowSize = 1;
-  maxConcurrentDatasourceRequests = 1;
-  infiniteInitialRowCount = 100;
-  maxBlocksInCache = 10;
-  rowHeight = 36;
-  headerHeight = 32;
-  isInitialLoading = true;
-  apiErrorMessage = '';
+  rowModelType = rowModelType;
+  gridConfig = gridConfig;
 
   columnDefs: ColDef[] = [
     {
@@ -166,11 +161,7 @@ export class StarshipGrid {
     },
   ];
 
-  defaultColDef: ColDef = {
-    sortable: false,
-    filter: false,
-    resizable: true,
-  };
+  defaultColDef = defaultColDef;
 
   ngOnInit(): void {
     this.searchChanged$.pipe(debounceTime(500), distinctUntilChanged()).subscribe((value) => {
@@ -242,7 +233,7 @@ export class StarshipGrid {
           return;
         }
 
-        const pageNumber = Math.floor(rowParams.startRow / this.cacheBlockSize) + 1;
+        const pageNumber = Math.floor(rowParams.startRow / gridConfig.cacheBlockSize) + 1;
         const filters: CharacterFilters = {
           status: this.statusFilter,
           species: this.speciesFilter.trim(),
