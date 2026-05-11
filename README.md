@@ -1,8 +1,12 @@
-# Star Wars Data Grid (Angular)
+# Star Wars Grid App
 
-This app shows character data in a grid with search, filters, infinite scroll, and inline editing.
+This project is a simple Angular app that shows character data in a table.
+You can:
 
-## 1) Install and run
+- search
+- filter
+- scroll to load more rows
+- edit one column in the grid
 
 Requirements:
 
@@ -32,9 +36,11 @@ Useful commands:
 - `npm run test` (test)
 - `npm run build` (production build)
 
-## 2) SWAPI resource chosen
+```bash
+npm run build:prod
+```
 
-The grid uses the **character** resource (`/character`) from the configured API URL in `environment.*.ts`.
+## Tests
 
 Current configured API URL:
 
@@ -44,7 +50,7 @@ So requests are made to:
 
 - `https://rickandmortyapi.com/api/character`
 
-## 3) Infinite scroll + “no loader while scrolling”
+Current test files:
 
 Infinite scroll is implemented with **AG Grid Infinite Row Model**:
 
@@ -59,7 +65,14 @@ Why there is no full-page loader while scrolling:
 - `isInitialLoading` is set to `true` only when the data source is reset (first load, new search, new filter)
 - During normal scrolling, next blocks load in the background and the full-page loader is not shown
 
-## 4) Editable columns + where edits are stored
+- `swapi.spec.ts`
+  - checks API request URL and query params
+  - checks response mapping (`rows`, `total`, `hasNextPage`)
+  - checks 404 case returns empty result
+- `starship-grid.spec.ts`
+  - tests `applyLocalEdits` helper
+  - checks edited row values are applied correctly
+  - checks non-edited rows and fields stay unchanged
 
 Editable column:
 
@@ -76,7 +89,9 @@ How it works:
 - When rows are loaded again, local edits are merged back using `applyLocalEdits(...)`
 - Edits are not sent to backend and are lost on page refresh
 
-## 5) Column resizing
+1. User edits a cell in Name column
+2. `onCellValueChanged` saves the new value in `editedRows`
+3. When new rows load, local edits are merged back into rows before render
 
 Column resizing is enabled through AG Grid default column settings:
 
@@ -87,14 +102,11 @@ UI behavior:
 - AG Grid built-in resize handle is used
 - Custom CSS styles the resize handle on hover
 
-## 6) Trade-offs and limitations
+## How column resize is implemented
 
-- Edited values are local only (not persisted to server)
-- Global text search fetches all pages first, then filters client-side (simple but can be heavy on large datasets)
-- API/network errors show a retry message, but no offline caching is used
-- Data model and naming are mixed (project name says Star Wars, configured endpoint is Rick and Morty API)
+Column resize is built in through AG Grid.
 
-## 7) Third-party package used
+Global column defaults include:
 
 Main third-party grid package:
 
