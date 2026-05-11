@@ -1,88 +1,194 @@
-# Star Wars Data Grid (Angular)
+# Star Wars Grid App
 
-This app shows character data in a grid with search, filters, infinite scroll, and inline editing.
+This project is a simple Angular app that shows character data in a table.
+You can:
 
-## 1) Install and run
+- search
+- filter
+- scroll to load more rows
+- edit one column in the grid
 
-Requirements:
-- Node.js (LTS recommended)
+The UI title says "Star Wars Fleet", but the data source is the Rick and Morty API.
+
+## What this project uses
+
+- Framework: Angular (standalone components)
+- Grid package: `ag-grid-angular` and `ag-grid-community`
+- Async helpers: `rxjs`
+
+## How to install and run
+
+## Requirements
+
+- Node.js (LTS version is best)
 - npm
 
-Steps:
-1. Install dependencies:
+## Run locally
+
+1. Install packages:
+
 ```bash
 npm install
 ```
+
 2. Start the app:
+
 ```bash
 npm start
 ```
-3. Open:
+
+3. Open in browser:
+
 `http://localhost:4200`
 
-Useful commands:
-- `npm run start:dev` (development config)
-- `npm run start:test` (test config)
-- `npm run build` (production build)
+## Build for production
 
-## 2) SWAPI resource chosen
+```bash
+npm run build:prod
+```
 
-The grid uses the **character** resource (`/character`) from the configured API URL in `environment.*.ts`.
+## Tests
 
-Current configured API URL:
-- `https://rickandmortyapi.com/api`
+Run all tests:
 
-So requests are made to:
-- `https://rickandmortyapi.com/api/character`
+```bash
+npm test
+```
 
-## 3) Infinite scroll + “no loader while scrolling”
+Current test files:
 
-Infinite scroll is implemented with **AG Grid Infinite Row Model**:
-- `rowModelType: 'infinite'`
-- A custom datasource is set in `onGridReady()`
-- `getRows(startRow, endRow)` loads pages from the API as the user scrolls
-- Page size comes from `gridConfig.cacheBlockSize` (20)
+- `src/app/core/services/swapi.spec.ts`
+- `src/app/features/star-wars-grid/components/starship-grid/starship-grid.spec.ts`
 
-Why there is no full-page loader while scrolling:
-- The loading skeleton is controlled by `isInitialLoading`
-- `isInitialLoading` is set to `true` only when the data source is reset (first load, new search, new filter)
-- During normal scrolling, next blocks load in the background and the full-page loader is not shown
+What is tested now:
 
-## 4) Editable columns + where edits are stored
+- `swapi.spec.ts`
+  - checks API request URL and query params
+  - checks response mapping (`rows`, `total`, `hasNextPage`)
+  - checks 404 case returns empty result
+- `starship-grid.spec.ts`
+  - tests `applyLocalEdits` helper
+  - checks edited row values are applied correctly
+  - checks non-edited rows and fields stay unchanged
 
-Editable column:
-- `Name` only (`editable: true` in column definitions)
+What is not tested yet:
 
-Where edits are stored:
-- In memory in the component, inside:
+- full grid UI behavior in browser
+- infinite scroll behavior end-to-end
+- filter and search behavior end-to-end
+- retry/error message rendering in component template
+
+## Which API resource is used
+
+The app calls this endpoint:
+
+`/character`
+
+Base URL comes from environment files:
+
+- `src/environments/environment.ts`
+- `src/environments/environment.development.ts`
+- `src/environments/environment.production.ts`
+
+Current base URL in these files:
+
+`https://rickandmortyapi.com/api`
+
+So the app requests:
+
+`https://rickandmortyapi.com/api/character`
+
+## How infinite scroll works
+
+Infinite scroll is done with AG Grid "infinite row model".
+
+Main points:
+
+- `rowModelType` is set to `'infinite'`
+- On grid ready, the app sets a custom data source
+- AG Grid asks for rows in blocks (`startRow`, `endRow`)
+- The app converts row position to API page number
+- Block size is `20` rows (`gridConfig.cacheBlockSize`)
+
+When you scroll down, AG Grid asks for the next block, so the app loads more data without changing page.
+
+## Why there is no full loader while scrolling
+
+The app has a full loading skeleton only for first load and filter/search reset.
+
+This is controlled by `isInitialLoading`:
+
+- set to `true` when data source resets
+- set to `false` after first response
+
+During normal scroll, the app does not turn this full loader back on.
+So users can keep reading current rows while next rows load.
+
+## Which column is editable
+
+Only the `Name` column is editable.
+
+In column config:
+
+- `field: 'name'`
+- `editable: true`
+
+All other columns are read-only.
+
+## Where edited values are stored
+
+Edits are saved in local memory only.
+
+The component keeps them in:
+
 `editedRows: Map<number, Partial<Character>>`
 
-How it works:
-- On edit (`cellValueChanged`), new values are saved in `editedRows`
-- When rows are loaded again, local edits are merged back using `applyLocalEdits(...)`
-- Edits are not sent to backend and are lost on page refresh
+Flow:
 
-## 5) Column resizing
+1. User edits a cell in Name column
+2. `onCellValueChanged` saves the new value in `editedRows`
+3. When new rows load, local edits are merged back into rows before render
 
-Column resizing is enabled through AG Grid default column settings:
-- `defaultColDef.resizable = true`
+Important:
 
-UI behavior:
-- AG Grid built-in resize handle is used
-- Custom CSS styles the resize handle on hover
+- Edits are not saved to backend
+- Edits are lost if page is refreshed
 
-## 6) Trade-offs and limitations
+## How column resize is implemented
 
-- Edited values are local only (not persisted to server)
-- Global text search fetches all pages first, then filters client-side (simple but can be heavy on large datasets)
-- API/network errors show a retry message, but no offline caching is used
-- Data model and naming are mixed (project name says Star Wars, configured endpoint is Rick and Morty API)
+Column resize is built in through AG Grid.
 
-## 7) Third-party package used
+Global column defaults include:
 
-Main third-party grid package:
-- `ag-grid-angular`
-- `ag-grid-community`
+`resizable: true`
 
-Also used:
-- `rxjs` for debounce and async stream handling
+So each column can be resized by dragging header edges.
+The CSS only changes how the resize handle looks.
+
+## Search and filter behavior
+
+There are two modes:
+
+1. No search text:
+
+- App fetches one API page at a time (best for performance)
+
+2. With search text:
+
+- App first loads all pages for current filters
+- Then runs local text matching on all loaded rows
+
+This gives flexible search, but can use more requests and memory.
+
+## Errors and empty states
+
+- If API fails, app shows an error message with Retry button
+- If no rows match filters/search, app shows a "No characters found" message
+- When last page is reached, app shows an end-of-list message
+
+## Trade-offs and limits
+
+- Local edits are not permanent (no save API call)
+- Global search can be heavy for very large datasets (loads all filtered pages first)
+- App naming and data source are mixed: Star Wars style UI + Rick and Morty character API
+- The `start:test` script may need environment file name alignment before use
