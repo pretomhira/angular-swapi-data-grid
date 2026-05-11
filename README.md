@@ -1,59 +1,88 @@
-# AngularSwapiDataGrid
+# Star Wars Data Grid (Angular)
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.10.
+This app shows character data in a grid with search, filters, infinite scroll, and inline editing.
 
-## Development server
+## 1) Install and run
 
-To start a local development server, run:
+Requirements:
+- Node.js (LTS recommended)
+- npm
 
+Steps:
+1. Install dependencies:
 ```bash
-ng serve
+npm install
 ```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
+2. Start the app:
 ```bash
-ng generate component component-name
+npm start
 ```
+3. Open:
+`http://localhost:4200`
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Useful commands:
+- `npm run start:dev` (development config)
+- `npm run start:test` (test config)
+- `npm run build` (production build)
 
-```bash
-ng generate --help
-```
+## 2) SWAPI resource chosen
 
-## Building
+The grid uses the **character** resource (`/character`) from the configured API URL in `environment.*.ts`.
 
-To build the project run:
+Current configured API URL:
+- `https://rickandmortyapi.com/api`
 
-```bash
-ng build
-```
+So requests are made to:
+- `https://rickandmortyapi.com/api/character`
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## 3) Infinite scroll + “no loader while scrolling”
 
-## Running unit tests
+Infinite scroll is implemented with **AG Grid Infinite Row Model**:
+- `rowModelType: 'infinite'`
+- A custom datasource is set in `onGridReady()`
+- `getRows(startRow, endRow)` loads pages from the API as the user scrolls
+- Page size comes from `gridConfig.cacheBlockSize` (20)
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+Why there is no full-page loader while scrolling:
+- The loading skeleton is controlled by `isInitialLoading`
+- `isInitialLoading` is set to `true` only when the data source is reset (first load, new search, new filter)
+- During normal scrolling, next blocks load in the background and the full-page loader is not shown
 
-```bash
-ng test
-```
+## 4) Editable columns + where edits are stored
 
-## Running end-to-end tests
+Editable column:
+- `Name` only (`editable: true` in column definitions)
 
-For end-to-end (e2e) testing, run:
+Where edits are stored:
+- In memory in the component, inside:
+`editedRows: Map<number, Partial<Character>>`
 
-```bash
-ng e2e
-```
+How it works:
+- On edit (`cellValueChanged`), new values are saved in `editedRows`
+- When rows are loaded again, local edits are merged back using `applyLocalEdits(...)`
+- Edits are not sent to backend and are lost on page refresh
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## 5) Column resizing
 
-## Additional Resources
+Column resizing is enabled through AG Grid default column settings:
+- `defaultColDef.resizable = true`
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+UI behavior:
+- AG Grid built-in resize handle is used
+- Custom CSS styles the resize handle on hover
+
+## 6) Trade-offs and limitations
+
+- Edited values are local only (not persisted to server)
+- Global text search fetches all pages first, then filters client-side (simple but can be heavy on large datasets)
+- API/network errors show a retry message, but no offline caching is used
+- Data model and naming are mixed (project name says Star Wars, configured endpoint is Rick and Morty API)
+
+## 7) Third-party package used
+
+Main third-party grid package:
+- `ag-grid-angular`
+- `ag-grid-community`
+
+Also used:
+- `rxjs` for debounce and async stream handling
