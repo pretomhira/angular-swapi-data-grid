@@ -1,21 +1,21 @@
 import { ChangeDetectorRef, Component, inject, NgZone } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { AgGridAngular } from 'ag-grid-angular';
 import {
-  ModuleRegistry,
   AllCommunityModule,
+  CellValueChangedEvent,
   GridApi,
   GridReadyEvent,
   IDatasource,
   IGetRowsParams,
-  CellValueChangedEvent,
+  ModuleRegistry,
 } from 'ag-grid-community';
+import { debounceTime, distinctUntilChanged, firstValueFrom, Subject } from 'rxjs';
 import { Character } from '../../../../core/models/character.model';
 import { CharacterFilters, Swapi } from '../../../../core/services/swapi';
-import { debounceTime, distinctUntilChanged, firstValueFrom, Subject } from 'rxjs';
-import { FormsModule } from '@angular/forms';
-import { defaultColDef, gridConfig, rowModelType } from './starship-grid.config';
 import { characterColumnDefs } from './starship-grid.columns';
-import { matchesGlobalSearch, applyLocalEdits } from './starship-grid.helpers';
+import { defaultColDef, gridConfig, rowModelType } from './starship-grid.config';
+import { applyLocalEdits, matchesGlobalSearch } from './starship-grid.helpers';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 @Component({
