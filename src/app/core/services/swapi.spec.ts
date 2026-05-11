@@ -76,4 +76,52 @@ describe('Swapi', () => {
       results: [mockCharacter(1, 'Rick Sanchez')],
     });
   });
+
+  it('should combine rows from multiple pages in consumer logic', () => {
+    const combinedRows: Character[] = [];
+
+    service.getCharactersPage(1).subscribe((page) => {
+      combinedRows.push(...page.rows);
+    });
+
+    const pageOneReq = httpMock.expectOne((request) => {
+      return (
+        request.url === `${environment.apiUrl}/character` && request.params.get('page') === '1'
+      );
+    });
+
+    pageOneReq.flush({
+      info: {
+        count: 2,
+        pages: 2,
+        next: `${environment.apiUrl}/character?page=2`,
+        prev: null,
+      },
+      results: [mockCharacter(1, 'Rick Sanchez')],
+    });
+
+    service.getCharactersPage(2).subscribe((page) => {
+      combinedRows.push(...page.rows);
+
+      expect(combinedRows.length).toBe(2);
+      expect(combinedRows[0].name).toBe('Rick Sanchez');
+      expect(combinedRows[1].name).toBe('Morty Smith');
+    });
+
+    const pageTwoReq = httpMock.expectOne((request) => {
+      return (
+        request.url === `${environment.apiUrl}/character` && request.params.get('page') === '2'
+      );
+    });
+
+    pageTwoReq.flush({
+      info: {
+        count: 2,
+        pages: 2,
+        next: null,
+        prev: `${environment.apiUrl}/character?page=1`,
+      },
+      results: [mockCharacter(2, 'Morty Smith')],
+    });
+  });
 });
