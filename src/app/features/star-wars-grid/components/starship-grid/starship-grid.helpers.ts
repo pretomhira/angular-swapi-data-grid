@@ -18,3 +18,13 @@ export function matchesGlobalSearch(row: Character, term: string): boolean {
 
   return haystack.includes(needle);
 }
+
+export function applyLocalEdits(
+  rows: Character[],
+  editedRows: Map<number, Partial<Character>>,
+): Character[] {
+  return rows.map((row) => ({
+    ...row,
+    ...(editedRows.get(row.id) ?? {}),
+  }));
+}

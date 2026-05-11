@@ -15,7 +15,7 @@ import { debounceTime, distinctUntilChanged, firstValueFrom, Subject } from 'rxj
 import { FormsModule } from '@angular/forms';
 import { defaultColDef, gridConfig, rowModelType } from './starship-grid.config';
 import { characterColumnDefs } from './starship-grid.columns';
-import { matchesGlobalSearch } from './starship-grid.helpers';
+import { matchesGlobalSearch, applyLocalEdits } from './starship-grid.helpers';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 @Component({
@@ -79,7 +79,7 @@ export class StarshipGrid {
 
   onCellValueChanged(event: CellValueChangedEvent): void {
     const row = event.data;
-    if (row?.id || !event.colDef.field) {
+    if (!row?.id || !event.colDef.field) {
       return;
     }
     const existingEdit = this.editedRows.get(row.id) || {};
@@ -157,10 +157,7 @@ export class StarshipGrid {
               return;
             }
 
-            const rowsWithLocalEdits = page.rows.map((row) => ({
-              ...row,
-              ...(this.editedRows.get(row.id) ?? {}),
-            }));
+            const rowsWithLocalEdits = applyLocalEdits(page.rows, this.editedRows);
 
             const lastRow = page.hasNextPage ? undefined : rowParams.startRow + page.rows.length;
 
@@ -198,10 +195,10 @@ export class StarshipGrid {
       }
 
       const filteredRows = this.globalSearchRows;
-      const pageRows = filteredRows.slice(rowParams.startRow, rowParams.endRow).map((row) => ({
-        ...row,
-        ...(this.editedRows.get(row.id) ?? {}),
-      }));
+      const pageRows = applyLocalEdits(
+        filteredRows.slice(rowParams.startRow, rowParams.endRow),
+        this.editedRows,
+      );
 
       this.ngZone.run(() => {
         this.isInitialLoading = false;
