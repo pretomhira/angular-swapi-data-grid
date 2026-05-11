@@ -102,7 +102,7 @@
   }
 
   @if (isInitialLoading) {
-    <div class="rounded-xl border border-gray-200 bg-white p-6">
+    <div class="rounded-b-xl border border-gray-200 bg-white p-6">
       <div class="animate-pulse space-y-4">
         <div class="h-4 w-48 rounded bg-gray-200"></div>
         <div class="h-10 rounded bg-gray-200"></div>
@@ -121,13 +121,13 @@
         [columnDefs]="columnDefs"
         [defaultColDef]="defaultColDef"
         [rowModelType]="rowModelType"
-        [cacheBlockSize]="cacheBlockSize"
-        [cacheOverflowSize]="cacheOverflowSize"
-        [maxConcurrentDatasourceRequests]="maxConcurrentDatasourceRequests"
-        [infiniteInitialRowCount]="infiniteInitialRowCount"
-        [maxBlocksInCache]="maxBlocksInCache"
-        [rowHeight]="rowHeight"
-        [headerHeight]="headerHeight"
+        [cacheBlockSize]="gridConfig.cacheBlockSize"
+        [cacheOverflowSize]="gridConfig.cacheOverflowSize"
+        [maxConcurrentDatasourceRequests]="gridConfig.maxConcurrentDatasourceRequests"
+        [infiniteInitialRowCount]="gridConfig.infiniteInitialRowCount"
+        [maxBlocksInCache]="gridConfig.maxBlocksInCache"
+        [rowHeight]="gridConfig.rowHeight"
+        [headerHeight]="gridConfig.headerHeight"
         (gridReady)="onGridReady($event)"
         (cellValueChanged)="onCellValueChanged($event)"
       ></ag-grid-angular>
