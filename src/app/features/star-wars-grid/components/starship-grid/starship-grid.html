@@ -1,62 +1,82 @@
-<div class="space-y-4">
-  <div class="flex flex-wrap items-center gap-3">
-    <input
-      type="text"
-      [ngModel]="searchTerm"
-      (ngModelChange)="onSearchChange($event)"
-      placeholder="Search by name, status, species, type, gender, origin..."
-      class="w-full max-w-md rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm outline-none focus:border-gray-500"
-    />
-
-    <select
-      [ngModel]="statusFilter"
-      (ngModelChange)="statusFilter = $event; onFilterChange()"
-      class="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 outline-none focus:border-gray-500"
-    >
-      <option value="">All status</option>
-      @for (status of statusOptions; track status) {
-        <option [value]="status">{{ status || 'All status' }}</option>
-      }
-    </select>
-
-    <input
-      type="text"
-      [ngModel]="speciesFilter"
-      (ngModelChange)="speciesFilter = $event; onFilterChange()"
-      placeholder="Species (e.g. Human)"
-      class="w-full max-w-xs rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm outline-none focus:border-gray-500"
-    />
-
-    <select
-      [ngModel]="genderFilter"
-      (ngModelChange)="genderFilter = $event; onFilterChange()"
-      class="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 outline-none focus:border-gray-500"
-    >
-      <option value="">All gender</option>
-      @for (gender of genderOptions; track gender) {
-        <option [value]="gender">{{ gender || 'All gender' }}</option>
-      }
-    </select>
-
-    @if (searchTerm) {
-      <button
-        type="button"
-        (click)="clearSearch()"
-        class="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+<div>
+  <div
+    class="flex flex-col gap-2 rounded-t-lg border border-b-0 border-[#D7D8DE] p-2 md:flex-row md:items-center"
+  >
+    <div class="relative flex w-full items-center md:w-1/2">
+      <svg
+        class="pointer-events-none absolute left-2.5 h-4 w-4 text-[#7A7F8A]"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
       >
-        Clear search
-      </button>
-    }
+        <path
+          d="M21 21L16.65 16.65M10.875 18.75C15.2242 18.75 18.75 15.2242 18.75 10.875C18.75 6.52576 15.2242 3 10.875 3C6.52576 3 3 6.52576 3 10.875C3 15.2242 6.52576 18.75 10.875 18.75Z"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+      <input
+        type="text"
+        [ngModel]="searchTerm"
+        (ngModelChange)="onSearchChange($event)"
+        placeholder="Search elements..."
+        class="h-8 w-full rounded-md border border-[#C8CAD2] bg-white py-0 pr-18 pl-7.5 text-sm text-[#2A2F39] outline-none focus:border-[#4C6FFF] focus:ring-1 focus:ring-[#4C6FFF]"
+      />
+      @if (searchTerm) {
+        <button
+          type="button"
+          (click)="clearSearch()"
+          class="absolute right-1.5 h-6 rounded-md border border-[#CFD2DA] bg-white px-2 text-xs text-[#505A6B]"
+        >
+          Clear
+        </button>
+      }
+    </div>
 
-    @if (statusFilter || speciesFilter || genderFilter) {
-      <button
-        type="button"
-        (click)="clearFilters()"
-        class="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+    <div class="flex w-full flex-wrap items-center gap-2 md:w-1/2">
+      <select
+        [ngModel]="statusFilter"
+        (ngModelChange)="statusFilter = $event; onFilterChange()"
+        class="h-7.5 min-w-24 flex-1 rounded-md border border-[#CFD2DA] bg-white px-2.5 text-xs text-[#4C5565] outline-none focus:border-[#4C6FFF] md:min-w-27.5 md:flex-none"
       >
-        Clear filters
-      </button>
-    }
+        <option value="">Status</option>
+        @for (status of statusOptions; track status) {
+          <option [value]="status">{{ status || 'Status' }}</option>
+        }
+      </select>
+
+      <input
+        type="text"
+        [ngModel]="speciesFilter"
+        (ngModelChange)="speciesFilter = $event; onFilterChange()"
+        placeholder="Species"
+        class="h-7.5 min-w-30 flex-1 rounded-md border border-[#CFD2DA] bg-white px-2.5 text-xs text-[#4C5565] outline-none focus:border-[#4C6FFF] md:min-w-35 md:flex-none"
+      />
+
+      <select
+        [ngModel]="genderFilter"
+        (ngModelChange)="genderFilter = $event; onFilterChange()"
+        class="h-7.5 min-w-24 flex-1 rounded-md border border-[#CFD2DA] bg-white px-2.5 text-xs text-[#4C5565] outline-none focus:border-[#4C6FFF] md:min-w-27.5 md:flex-none"
+      >
+        <option value="">Gender</option>
+        @for (gender of genderOptions; track gender) {
+          <option [value]="gender">{{ gender || 'Gender' }}</option>
+        }
+      </select>
+
+      @if (statusFilter || speciesFilter || genderFilter) {
+        <button
+          type="button"
+          (click)="clearFilters()"
+          class="h-7.5 rounded-md border border-[#CFD2DA] bg-white px-2.5 text-xs text-[#505A6B]"
+        >
+          Reset
+        </button>
+      }
+    </div>
   </div>
   @if (apiErrorMessage) {
     <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
@@ -106,6 +126,8 @@
         [maxConcurrentDatasourceRequests]="maxConcurrentDatasourceRequests"
         [infiniteInitialRowCount]="infiniteInitialRowCount"
         [maxBlocksInCache]="maxBlocksInCache"
+        [rowHeight]="rowHeight"
+        [headerHeight]="headerHeight"
         (gridReady)="onGridReady($event)"
         (cellValueChanged)="onCellValueChanged($event)"
       ></ag-grid-angular>
