@@ -52,7 +52,7 @@
         type="text"
         [ngModel]="speciesFilter"
         (ngModelChange)="speciesFilter = $event; onFilterChange()"
-        placeholder="Species"
+        placeholder="By Species"
         class="h-7.5 min-w-30 flex-1 rounded-md border border-[#CFD2DA] bg-white px-2.5 text-xs text-[#4C5565] outline-none focus:border-[#4C6FFF] md:min-w-35 md:flex-none"
       />
 
@@ -63,7 +63,7 @@
       >
         <option value="">Gender</option>
         @for (gender of genderOptions; track gender) {
-          <option [value]="gender">{{ gender || 'Gender' }}</option>
+          <option [value]="gender">{{ gender || 'By Gender' }}</option>
         }
       </select>
 
@@ -136,7 +136,7 @@
 
   @if (hasReachedEnd && !noRowsFound) {
     <div
-      class="rounded-xl border border-gray-200 bg-white px-4 py-3 text-center text-sm text-gray-500"
+      class="rounded-lg border border-gray-200 bg-white px-4 py-3 text-center text-sm text-gray-500 mt-1"
     >
       You have reached the end of the list. No more characters to load.
     </div>

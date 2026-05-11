@@ -42,8 +42,8 @@ export class StarshipGrid {
   isInitialLoading = true;
   apiErrorMessage = '';
 
-  readonly statusOptions = ['', 'alive', 'dead', 'unknown'];
-  readonly genderOptions = ['', 'female', 'male', 'genderless', 'unknown'];
+  readonly statusOptions = ['alive', 'dead', 'unknown'];
+  readonly genderOptions = ['female', 'male', 'genderless', 'unknown'];
 
   rowModelType = rowModelType;
   gridConfig = gridConfig;
